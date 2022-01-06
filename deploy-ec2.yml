@@ -5,18 +5,18 @@
   vars: 
     aws_region: us-east-1
     subnet_id: vpc-180f5f7f
-
- - name: Create a RHEL EC2 instance
-      ec2:
-        region: "{{ aws_region }}"
-        key_name: caramelmom-key
-        instance_type: t2.micro
-        image: ami-0b0af3577fe5e3532
-        wait: yes
-        group: ansible_demo_sg
-        count: 1
-        vpc_subnet_id: "{{ subnet_id }}"
-        assign_public_ip: true
+  tasks:
+    - name: Create a RHEL EC2 instance
+        ec2:
+          region: "{{ aws_region }}"
+          key_name: caramelmom-key
+          instance_type: t2.micro
+          image: ami-0b0af3577fe5e3532
+          wait: yes
+          group: ansible_demo_sg
+          count: 1
+          vpc_subnet_id: "{{ subnet_id }}"
+          assign_public_ip: true
       register: ansible_demo_instance
 
     - name: Display ec2 instance IP in debug
