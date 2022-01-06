@@ -1,6 +1,6 @@
 ---
 - name: Playbook to create AWS resources and EC2 instance
-  #hosts: localhost
+  hosts: localhost
   # a variable I'll use throughout the playbook
   vars: 
     aws_region: us-east-1
