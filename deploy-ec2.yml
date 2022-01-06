@@ -17,7 +17,7 @@
           count: 1
           vpc_subnet_id: "{{ subnet_id }}"
           assign_public_ip: true
-      register: ansible_demo_instance
+        register: ansible_demo_instance
 
     - name: Display ec2 instance IP in debug
       debug:
