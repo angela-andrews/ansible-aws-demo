@@ -11,6 +11,9 @@
         cidr_block: 10.0.0.0/16
         region: "{{ aws_region }}"
         tenancy: default
+        tags:
+          Name: demo-vpc
+          tools: ansible
       # register means that the output of this task will be captured in a variable
       register: ansible_demo_vpc
 
@@ -19,6 +22,8 @@
         vpc_id: "{{ ansible_demo_vpc.vpc.id }}"
         region: "{{ aws_region }}"
         state: present
+        tags:
+          Name: demo-igw
       register: ansible_demo_igw
 
     - name: Create subnet
@@ -27,6 +32,8 @@
         vpc_id: "{{ ansible_demo_vpc }}"
         cidr: 10.10.0.0/20
         region: "{{ aws_region }}"
+        tags:
+          Name: demo-subnet
       register: ansible_demo_subnet
 
     - name: Create route table
@@ -34,6 +41,8 @@
         vpc_id: "{{ ansible_demo_vpc.vpc.id }}"
         region: "{{ aws_region }}"  
         subnets: "{{ ansible_demo_subnet.subnet.id }}"
+        tags:
+          Name: demo-rt
         routes: 
           - dest: 0.0.0.0/0
             gateway_id: "{{ ansible_demo_igw.gateway.id }}"
@@ -61,7 +70,7 @@
         group: ansible_demo_sg
         count: 1
         vpc_subnet_id: "{{ ansible_demo_subnet.subnet.id }}"
-        assign_public_ip: yes
+        assign_public_ip: true
       register: ansible_demo_instance
 
     - name: Display ec2 instance IP in debug
