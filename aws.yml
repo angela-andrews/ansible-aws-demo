@@ -7,12 +7,63 @@
   tasks:
     - name: Create the VPC
       ec2_vpc_net:
-        name: angela_demo_vpc
+        name: ansible_demo_vpc
         cidr_block: 10.0.0.0/16
         region: "{{ aws_region }}"
         tenancy: default
       # register means that the output of this task will be captured in a variable
       register: ansible_demo_vpc
-    - name: Create the internet gateway. Gives external access to/from the EC2 instances
-      ec2_vpc_igw
-      
+
+    - name: Create the internet gateway and tie to vpc. Gives external access to/from the EC2 instances
+      ec2_vpc_igw:
+        vpc_id: "{{ ansible_demo_vpc.vpc.id }}"
+        region: "{{ aws_region }}"
+        state: present
+      register: ansible_demo_igw
+
+    - name: Create subnet
+      ec2_vpc_subnet:
+        state: present
+        vpc_id: "{{ ansible_demo_vpc }}"
+        cidr: 10.10.0.0/20
+        region: "{{ aws_region }}"
+      register: ansible_demo_subnet
+
+    - name: Create route table
+      ec2_vpc_route_table:
+        vpc_id: "{{ ansible_demo_vpc.vpc.id }}"
+        region: "{{ aws_region }}"  
+        subnets: "{{ ansible_demo_subnet.subnet.id }}"
+        routes: 
+          - dest: 0.0.0.0/0
+            gateway_id: "{{ ansible_demo_igw.gateway.id }}"
+
+    - name: Create security group to allow incoming traffic
+      ec2_group:
+        name: ansible_demo_sg
+        description: AWS security group for demo
+        vpc_id: "{{ ansible_demo_vpc.vpc.id }}"
+        region: "{{ aws_region }}"
+        rules:
+          - proto: tcp
+            ports: 
+              - 22
+            cidr_ip: 0.0.0.0/0
+            rule_desc: allow traffic on port 22 from everywhere
+
+    - name: Create a RHEL EC2 instance
+      ec2:
+        region: "{{ aws_region }}"
+        key_name: caramelmom-key
+        instance_type: t2.micro
+        image: ami-0b0af3577fe5e3532
+        wait: yes
+        group: ansible_demo_sg
+        count: 1
+        vpc_subnet_id: "{{ ansible_demo_subnet.subnet.id }}"
+        assign_public_ip: yes
+    register: ansible_demo_instance
+
+    - name: Display ec2 instance IP in debug
+      debug:
+        msg: "The RHEL instance can be accessed at {{ ansible_demo_instance.instances[0].public_ip }}"
