@@ -1,0 +1,18 @@
+---
+- name: Playbook to create AWS resources and EC2 instance
+  hosts: localhost
+  # a variable I'll use throughout the playbook
+  vars: 
+    aws_region: us-east-1
+  tasks:
+    - name: Create the VPC
+      ec2_vpc_net:
+        name: angela_demo_vpc
+        cidr_block: 10.0.0.0/16
+        region: "{{ aws_region }}"
+        tenancy: default
+      # register means that the output of this task will be captured in a variable
+      register: ansible_demo_vpc
+    - name: Create the internet gateway. Gives external access to/from the EC2 instances
+      ec2_vpc_igw
+      
